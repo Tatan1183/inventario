@@ -45,13 +45,22 @@ const getCategory = async (req, res) => {
 
 const deleteCategory = async (req, res) => {
   try {
-    console.log("id de categoria a borrar: ", req.params);
-    const {id} = req.params
+    const { id } = req.params;
     const connection = await getConnection();
-    const result = await connection.query("DELETE FROM categorias WHERE CategoriaID = ?",id );
-    res.json(result);
+    const [result] = await connection.query("DELETE FROM categorias WHERE CategoriaID = ?", id);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: `Categoría con ID ${id} no encontrada.` });
+    }
+
+    // Devolver un mensaje de éxito o status 204 (No Content)
+    // res.status(204).send(); // Opción 1: Sin contenido
+    res.json({ message: `Categoría ${id} eliminada exitosamente.`}); // Opción 2: Con mensaje
+
   } catch (error) {
-    console.error("ERROR 500");
+    console.error(`Error deleting category ${id}:`, error);
+    // Considera errores de FK si 'categorias' tiene relaciones
+    res.status(500).json({ message: "Error interno del servidor al eliminar categoría." });
   }
 };
 
